@@ -11,13 +11,14 @@ A Curvature based Isometric Feature Mapping
 import sys
 import time
 import warnings
-import umap
+import umap                 # precisa instalar com: pip install umap
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 import sklearn.datasets as skdata
 import sklearn.neighbors as sknn
 import sklearn.utils.graph as sksp
+import networkx as nx
 from numpy import log
 from numpy import trace
 from numpy import dot
@@ -65,7 +66,9 @@ def myIsomap(dados, k, d):
     knnGraph = sknn.kneighbors_graph(dados, n_neighbors=k, mode='distance')
     # Computes geodesic distances
     A = knnGraph.toarray()
-    D = sksp.graph_shortest_path(A, directed=False)
+    G = nx.from_numpy_matrix(A)
+    #D = sksp.graph_shortest_path(A, directed=False)
+    D = nx.floyd_warshall_numpy(G)  
     n = D.shape[0]
     # Computes centering matrix H
     H = np.eye(n, n) - (1/n)*np.ones((n, n))
@@ -125,7 +128,9 @@ def GeodesicIsomap(dados, k, d):
                 B[i, j] = np.linalg.norm(delta)                
                
     # Computes geodesic distances in B
-    D = sksp.graph_shortest_path(B, directed=False)
+    #D = sksp.graph_shortest_path(B, directed=False)
+    G = nx.from_numpy_matrix(B)
+    D = nx.floyd_warshall_numpy(G)  
     # Computes centering matrix H
     H = np.eye(n, n) - (1/n)*np.ones((n, n))
     # Computes the inner products matrix B
@@ -230,7 +235,7 @@ def Classification(dados, target, method):
     maximo = max(lista)
 
     print('Average accuracy: ', average)
-    print('Maximum accuracy: ', maximo)
+    #print('Maximum accuracy: ', maximo)
     print()
 
     return [sc, average]
@@ -286,7 +291,7 @@ def PlotaDados(dados, labels, metodo):
 #%%%%%%%%%%%%%%%%%%%%  Data loading
 
 # OpenML datasets
-#X = skdata.load_iris()     
+X = skdata.load_iris()     
 #X = skdata.fetch_openml(name='prnn_crabs', version=1) 
 #X = skdata.fetch_openml(name='servo', version=1) 
 #X = skdata.fetch_openml(name='tic-tac-toe', version=1)
@@ -321,7 +326,7 @@ def PlotaDados(dados, labels, metodo):
 #X = skdata.fetch_openml(name='prnn_viruses', version=1) 
 #X = skdata.fetch_openml(name='vineyard', version=2) 
 #X = skdata.fetch_openml(name='confidence', version=2) 
-X = skdata.fetch_openml(name='user-knowledge', version=1) 
+#X = skdata.fetch_openml(name='user-knowledge', version=1) 
 
 dados = X['data']
 target = X['target']
@@ -387,7 +392,7 @@ L_pca = Classification(dados_pca, target, 'PCA')
 L_iso = Classification(dados_isomap, target, 'ISOMAP')
 L_lle = Classification(dados_LLE, target, 'LLE')
 L_lap = Classification(dados_Lap, target, 'Lap. Eig.')
-L_ltsa = Classification(dados_ltsa, target, 'LTSA')
+#L_ltsa = Classification(dados_ltsa, target, 'LTSA')
 L_tsne = Classification(dados_tsne, target, 't-SNE')
 L_umap = Classification(dados_umap, target, 'UMAP')
 
@@ -397,7 +402,7 @@ PlotaDados(dados_pca.T, target, 'PCA')
 PlotaDados(dados_isomap.T, target, 'ISOMAP')
 PlotaDados(dados_LLE.T, target, 'LLE')
 PlotaDados(dados_Lap.T, target, 'LAP')
-PlotaDados(dados_ltsa.T, target, 'LTSA')
+#PlotaDados(dados_ltsa.T, target, 'LTSA')
 PlotaDados(dados_tsne.T, target, 't-SNE')
 PlotaDados(dados_umap.T, target, 'UMAP')
 
